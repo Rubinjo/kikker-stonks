@@ -55,10 +55,20 @@ def splitingData():
     n=32
     eindbaasList = []
     for i in range(len(df) - n + 1):
-        eindbaasList.append(selectingXRows(i, df, n))
+        correct = True
+        rowItem = selectingXRows(i, df, n)
+        for ticker in range(len(rowItem[0])):
+            # for item in range(len(rowItem[0][ticker])):
 
-cleanData()
-splitingData()
+            if (len(rowItem[0][ticker]) != n):
+                correct = False
+                print("falsy")
+                break
+        if (correct):
+            eindbaasList.append(rowItem)
+    return eindbaasList
 
+if __name__=='__main__': 
+    splitingData()
 
 
