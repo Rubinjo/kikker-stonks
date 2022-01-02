@@ -18,7 +18,7 @@ from neuralNet import LSTM_NN
 TEST_SIZE = 0.15
 BATCH_SIZE = 50
 LEARNING_RATE = 0.001
-NUM_EPOCHS = 2
+NUM_EPOCHS = 20
 
 train_encoded, test_encoded = train_test_split(splitingData(), test_size=TEST_SIZE)
 
@@ -35,7 +35,7 @@ test_dl = DataLoader(test_ds, shuffle=True, batch_size=BATCH_SIZE, drop_last=Tru
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model = LSTM_NN(BATCH_SIZE, 32, 16, 4, 0.2)
+model = LSTM_NN(BATCH_SIZE, 32, 16, 1, 0.2)
 # model = model.to(dtype=torch.double)
 model = model.to(device)
 
@@ -63,8 +63,11 @@ for epoch in range(NUM_EPOCHS):
 
         optimizer.zero_grad()
         with torch.set_grad_enabled(True):
+            # print(input, h0, c0)
             out, hidden = model(input, (h0, c0))
+            # print(out)
             train_loss = criterion(out, target.long())
+            # print(train_loss)
             train_loss.backward()
             optimizer.step()
 
@@ -114,7 +117,7 @@ torch.save(model.state_dict(), path + f"model{curTime}.pth")
 # model.load_state_dict(torch.load(path))
 # model.eval()
 
-fix = plt.figure()
+fig = plt.figure()
 
 plt.plot(train_losses, label="Training loss")
 plt.plot(test_losses, label="Validation loss")
@@ -122,8 +125,4 @@ plt.title("Training and Validation loss")
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
 plt.legend()
-
-
-print(train_losses)
-print(test_losses)
-fix.savefig('my_figure.png')
+fig.savefig('train-val-loss.png')

@@ -1,3 +1,4 @@
+import math
 import pandas as pd
 import numpy as np
 
@@ -61,16 +62,24 @@ def splitingData():
         
         # validating row
         for ticker in range(len(rowItem[0])):
-            # for item in range(len(rowItem[0][ticker])):
-
-            if (len(rowItem[0][ticker]) != n):
-                correct = False
-                break
+            for item in rowItem[0][ticker]:
+                if (math.isnan(item) or math.isnan(rowItem[1]) or item < -10 or rowItem[1] < -10 or item > 10 or rowItem[1] > 10): # Fuck DOGE
+                    correct = False
+                    break
+                
         if (correct):
             eindbaasList.append(rowItem)
-
             tickers, label = rowItem
             dataDict[label].append(tickers)
+
+    import csv
+
+    # ticker = ["rBTC", "rETH" ,"rADA" ,"rXRP","rDOT","rAVAX","rDOGE"]
+    # with open("Pils", "w") as f:
+    #     write = csv.writer(f)
+    #     write.writerow(ticker)
+    #     for tup in eindbaasList:
+    #         write.writerow(tup[0])
 
     negCount = len(dataDict[0])
     neutralCount = len(dataDict[1])
