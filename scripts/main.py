@@ -35,7 +35,7 @@ test_dl = DataLoader(test_ds, shuffle=True, batch_size=BATCH_SIZE, drop_last=Tru
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model = LSTM_NN(BATCH_SIZE, 32, 16, 1, 0.2)
+model = LSTM_NN(BATCH_SIZE, 32, 32, 1, 0.2)
 # model = model.to(dtype=torch.double)
 model = model.to(device)
 
@@ -101,8 +101,6 @@ for epoch in range(NUM_EPOCHS):
     print(f'Accuracy on the test set: {sum(batch_acc)/len(batch_acc):.3f}')
 
     test_losses.append(test_loss.item())
-
-
 
 path = "model/"
 if not os.path.exists(path):

@@ -16,11 +16,15 @@ class LSTM_NN(nn.Module):
         # self.pool1 = nn.MaxPool2d(1, 2)
         self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
         self.dropout = nn.Dropout(dropout)
-        self.fc = nn.Linear(hidden_dim, 3)
+        self.fc1 = nn.Linear(hidden_dim, 32)
+        self.fc2 = nn.Linear(32, 16)
+        self.fc3 = nn.Linear(16, 3)
     def forward(self, x, hidden):
         out, hidden = self.lstm(x, hidden)
         out = self.dropout(out)
-        out = self.fc(out)
+        out = F.relu(self.fc1(out))
+        out = F.relu(self.fc2(out))
+        out = self.fc3(out)
         # We extract the scores for the final hidden state
         out = out[:, -1]
         return out, hidden
