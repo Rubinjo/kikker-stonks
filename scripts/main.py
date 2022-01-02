@@ -7,6 +7,8 @@ import torch.nn as nn
 import time
 from sklearn.metrics import accuracy_score
 import math
+import os
+import matplotlib.pyplot as plt
 
 from cleaning import cleanData, splitingData
 from neuralNet import LSTM_NN
@@ -16,7 +18,7 @@ from neuralNet import LSTM_NN
 TEST_SIZE = 0.15
 BATCH_SIZE = 50
 LEARNING_RATE = 0.001
-NUM_EPOCHS = 20
+NUM_EPOCHS = 2
 
 train_encoded, test_encoded = train_test_split(splitingData(), test_size=TEST_SIZE)
 
@@ -33,7 +35,7 @@ test_dl = DataLoader(test_ds, shuffle=True, batch_size=BATCH_SIZE, drop_last=Tru
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model = LSTM_NN(BATCH_SIZE, 32, 16, 1, 0.2)
+model = LSTM_NN(BATCH_SIZE, 32, 16, 4, 0.2)
 # model = model.to(dtype=torch.double)
 model = model.to(device)
 
@@ -97,3 +99,31 @@ for epoch in range(NUM_EPOCHS):
 
     test_losses.append(test_loss.item())
 
+
+
+path = "model/"
+if not os.path.exists(path):
+  os.makedirs(path)
+
+curTime = time.time()
+
+torch.save(model.state_dict(), path + f"model{curTime}.pth")
+
+# loading model:
+# model = LSTM_NN(BATCH_SIZE, 32, 16, 4, 0.2)
+# model.load_state_dict(torch.load(path))
+# model.eval()
+
+fix = plt.figure()
+
+plt.plot(train_losses, label="Training loss")
+plt.plot(test_losses, label="Validation loss")
+plt.title("Training and Validation loss")
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
+plt.legend()
+
+
+print(train_losses)
+print(test_losses)
+fix.savefig('my_figure.png')

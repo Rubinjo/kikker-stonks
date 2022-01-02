@@ -1,7 +1,5 @@
 import pandas as pd
 import numpy as np
-from pandas.core.dtypes.generic import ABCDataFrame
-import math
 
 def cleanData():
     data = pd.read_excel('./data/main/top10_30m_1y_v2.xlsx', header=0)
@@ -28,7 +26,7 @@ def selectingXRows(lower, df, n):
 
     data = df.loc[(df['index'] > lower) & (df['index'] <= lower + n)]
 
-    neutralRange = .001 # up and down this is neutral
+    neutralRange = .0019 # up and down this is neutral
     labelValue = df.loc[df['index'] == lower].rBTC.values[0]
 
     if labelValue < 0 - neutralRange:
@@ -53,48 +51,46 @@ def splitingData():
     SPLITPERCENTAGE = .2
     df = pd.read_csv('./data/main/top10_30m_1y_clean.csv')
 
-    n=32
+    n=32 # amount of historic datapoints fed to network
     eindbaasList = []
+    dataDict = {0: [], 1: [], 2: []}
     for i in range(len(df) - n + 1):
         correct = True
         rowItem = selectingXRows(i, df, n)
+
+        
+        # validating row
         for ticker in range(len(rowItem[0])):
             # for item in range(len(rowItem[0][ticker])):
 
             if (len(rowItem[0][ticker]) != n):
                 correct = False
-                print("falsy")
                 break
         if (correct):
             eindbaasList.append(rowItem)
+
+            tickers, label = rowItem
+            dataDict[label].append(tickers)
+
+    negCount = len(dataDict[0])
+    neutralCount = len(dataDict[1])
+    positiveCount = len(dataDict[2])
+
+    minValue = min(negCount, neutralCount, positiveCount)
+
+    newDict = {0: [], 1: [], 2: []}
+    newDict[0] = dataDict[0][:minValue] 
+    newDict[1] = dataDict[1][:minValue] 
+    newDict[2] = dataDict[2][:minValue]  
+
+    eindbaasList = []
+    for label in range(3):
+        for item in newDict[label]:
+            eindbaasList.append((item, label))
+    
+    # df = pd.DataFrame.from_dict(dataDict)
+    # df.to_csv('dataTest.csv')
     return eindbaasList
-
-def normalizeData(data):
-    # How much you oversample compared to undersampling
-    FACTOR = 0.5
-
-    # [([[32 dim 1], [32 dim 2], ...], label), ....]
-    oversample_rate = math.floor((data["Sentiment"].value_counts()[0] - data["Sentiment"].value_counts()[-1]) * FACTOR)
-    undersample_rate = math.ceil((data["Sentiment"].value_counts()[0] - data["Sentiment"].value_counts()[-1]) * (1 - FACTOR))
-
-    most_data = data[data["Sentiment"] == data["Sentiment"].value_counts().index[0]]
-    mid_data = data[data["Sentiment"] == data["Sentiment"].value_counts().index[1]]
-    least_data = data[data["Sentiment"] == data["Sentiment"].value_counts().index[2]]
-
-    drop_indices = np.random.choice(most_data.index, size=undersample_rate, replace=False)
-    undersampled = most_data.drop(drop_indices, axis=0)
-    oversampled = least_data.append(least_data.sample(oversample_rate, replace=True))
-
-    midsample_rate = oversampled["Sentiment"].value_counts()[0] - mid_data["Sentiment"].value_counts()[0]
-
-    if (midsample_rate < 0):
-        mid_drop_indices = np.random.choice(mid_data.index, -midsample_rate, replace=False)
-        midsampled = mid_data.drop(mid_drop_indices)
-    else:
-        midsampled = mid_data.append(mid_data.sample(midsample_rate, replace=True))
-
-    balanced_data = pd.concat([oversampled, midsampled, undersampled])
-    balanced_data["Sentiment"].value_counts()
 
 if __name__=='__main__': 
     splitingData()
