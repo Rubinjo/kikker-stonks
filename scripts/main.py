@@ -17,10 +17,29 @@ from neuralNet import LSTM_NN
 
 TEST_SIZE = 0.15
 BATCH_SIZE = 50
-LEARNING_RATE = 0.001
-NUM_EPOCHS = 20
+LEARNING_RATE = 0.0003
+NUM_EPOCHS = 150
+SEQUENCE_LENGTH = 32
 
-train_encoded, test_encoded = train_test_split(splitingData(), test_size=TEST_SIZE)
+
+data = splitingData(SEQUENCE_LENGTH)
+dataLength = math.floor(len(data) / 3)
+training_size = math.floor(len(data) * (1-TEST_SIZE) /3)
+
+train_encoded = data[0:training_size]
+for item in data[dataLength: dataLength + training_size]:
+    train_encoded.append(item)
+for item in data[dataLength*2: dataLength*2 + training_size]:
+    train_encoded.append(item)
+
+test_encoded = data[training_size: dataLength]
+for item in data[(dataLength + training_size): dataLength*2]:
+    test_encoded.append(item)
+for item in data[(dataLength*2 + training_size):len(data)]:
+    test_encoded.append(item)
+
+# test_encoded, train_encoded = train_test_split(splitingData(SEQUENCE_LENGTH), test_size=(1 - TEST_SIZE), shuffle=False)
+# train_encoded, test_encoded = train_test_split(splitingData(SEQUENCE_LENGTH), test_size=TEST_SIZE)
 
 train_x = np.array([ticker for ticker, label in train_encoded], dtype=np.float32)
 train_y = np.array([label for ticker, label in train_encoded], dtype=np.float32)
@@ -35,7 +54,7 @@ test_dl = DataLoader(test_ds, shuffle=True, batch_size=BATCH_SIZE, drop_last=Tru
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model = LSTM_NN(BATCH_SIZE, 32, 32, 1, 0.2)
+model = LSTM_NN(BATCH_SIZE, SEQUENCE_LENGTH, 15, 1, 0.2)
 # model = model.to(dtype=torch.double)
 model = model.to(device)
 
@@ -47,7 +66,6 @@ train_losses = []
 test_losses = []
 
 for epoch in range(NUM_EPOCHS):
-
     h0, c0 =  model.init_hidden()
 
     h0 = h0.to(device)
@@ -95,7 +113,8 @@ for epoch in range(NUM_EPOCHS):
             _, preds = torch.max(out, 1)
             preds = preds.to(device).tolist()
             batch_acc.append(accuracy_score(preds, target.tolist()))
-
+            
+            # print(preds, target)
             test_loss = criterion(out, target.long())
 
     print(f'Accuracy on the test set: {sum(batch_acc)/len(batch_acc):.3f}')
@@ -112,7 +131,7 @@ torch.save(model.state_dict(), path + f"model{curTime}.pth")
 
 # loading model:
 # model = LSTM_NN(BATCH_SIZE, 32, 16, 4, 0.2)
-# model.load_state_dict(torch.load(path))
+# model.load_state_dict(torch.load("model/model39p.pth"))
 # model.eval()
 
 fig = plt.figure()

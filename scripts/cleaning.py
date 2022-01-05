@@ -48,16 +48,15 @@ def selectingXRows(lower, df, n):
     dataList = ([btc, eth, ada, xrp, dot, avax, doge], label)
     return dataList
 
-def splitingData():
+def splitingData(sequence_length):
     SPLITPERCENTAGE = .2
     df = pd.read_csv('./data/main/top10_30m_1y_clean.csv')
 
-    n=32 # amount of historic datapoints fed to network
     eindbaasList = []
     dataDict = {0: [], 1: [], 2: []}
-    for i in range(len(df) - n + 1):
+    for i in range(len(df) - sequence_length + 1):
         correct = True
-        rowItem = selectingXRows(i, df, n)
+        rowItem = selectingXRows(i, df, sequence_length)
 
         
         # validating row
