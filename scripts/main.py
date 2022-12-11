@@ -24,18 +24,18 @@ SEQUENCE_LENGTH = 32
 
 data = splitingData(SEQUENCE_LENGTH)
 dataLength = math.floor(len(data) / 3)
-training_size = math.floor(len(data) * (1-TEST_SIZE) /3)
+training_size = math.floor(len(data) * (1 - TEST_SIZE) / 3)
 
 train_encoded = data[0:training_size]
-for item in data[dataLength: dataLength + training_size]:
+for item in data[dataLength : dataLength + training_size]:
     train_encoded.append(item)
-for item in data[dataLength*2: dataLength*2 + training_size]:
+for item in data[dataLength * 2 : dataLength * 2 + training_size]:
     train_encoded.append(item)
 
-test_encoded = data[training_size: dataLength]
-for item in data[(dataLength + training_size): dataLength*2]:
+test_encoded = data[training_size:dataLength]
+for item in data[(dataLength + training_size) : dataLength * 2]:
     test_encoded.append(item)
-for item in data[(dataLength*2 + training_size):len(data)]:
+for item in data[(dataLength * 2 + training_size) : len(data)]:
     test_encoded.append(item)
 
 # test_encoded, train_encoded = train_test_split(splitingData(SEQUENCE_LENGTH), test_size=(1 - TEST_SIZE), shuffle=False)
@@ -59,14 +59,15 @@ model = LSTM_NN(BATCH_SIZE, SEQUENCE_LENGTH, 15, 1, 0.2)
 model = model.to(device)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr = LEARNING_RATE)
+optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
-start=time.time()
+start = time.time()
 train_losses = []
 test_losses = []
 
+print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start)))
 for epoch in range(NUM_EPOCHS):
-    h0, c0 =  model.init_hidden()
+    h0, c0 = model.init_hidden()
 
     h0 = h0.to(device)
     c0 = c0.to(device)
@@ -93,10 +94,12 @@ for epoch in range(NUM_EPOCHS):
         correct = torch.sum(torch.eq(pred, target)).item()
 
         elapsed = time.time() - start
-        
+
         if not batch_idx % (math.ceil(len(train_dl) / 4)):
-            print(f'epoch: {epoch}, batch: {batch_idx:<{len(str(len(train_dl)))}}/{len(train_dl)}, time: {elapsed:.3f}s, loss: {train_loss.item():.3f}, acc: {correct / BATCH_SIZE:.3f}')
-    
+            print(
+                f"epoch: {epoch}, batch: {batch_idx:<{len(str(len(train_dl)))}}/{len(train_dl)}, time: {elapsed:.3f}s, loss: {train_loss.item():.3f}, acc: {correct / BATCH_SIZE:.3f}"
+            )
+
     train_losses.append(train_loss.item())
 
     # Evaluation mode
@@ -113,17 +116,21 @@ for epoch in range(NUM_EPOCHS):
             _, preds = torch.max(out, 1)
             preds = preds.to(device).tolist()
             batch_acc.append(accuracy_score(preds, target.tolist()))
-            
+
             # print(preds, target)
             test_loss = criterion(out, target.long())
 
-    print(f'Accuracy on the test set: {sum(batch_acc)/len(batch_acc):.3f}')
+    print(f"Accuracy on the test set: {sum(batch_acc)/len(batch_acc):.3f}")
 
     test_losses.append(test_loss.item())
 
+
+print("total time: ", time.time() - start)
+print("time cost: ", time.strftime("%H:%M:%S", time.gmtime(time.time() - start)))
+
 path = "model/"
 if not os.path.exists(path):
-  os.makedirs(path)
+    os.makedirs(path)
 
 curTime = time.time()
 
@@ -142,4 +149,4 @@ plt.title("Training and Validation loss")
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
 plt.legend()
-fig.savefig('train-val-loss.png')
+fig.savefig("train-val-loss.png")
